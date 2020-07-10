@@ -1,1 +1,0 @@
-(?:ERROR)(?<error>(.|\s)+?)(?=TRACE|ERROR|DEBUG|\z)
