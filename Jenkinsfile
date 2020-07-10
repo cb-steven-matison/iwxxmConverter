@@ -1,8 +1,7 @@
 pipeline {
     agent any
     tools {
-        maven 'MavenTest'
-        jdk 'jdk_1.8.0_151'
+        maven 'Maven 3.6.3'
     }
     stages {
         stage ('Initialize') {
