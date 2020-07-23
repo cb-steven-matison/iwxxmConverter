@@ -159,9 +159,7 @@ public class SPACEWEATHERConverterV3 implements TacConverter<SPACEWEATHERTacMess
 			
 			resultSwxType.setNextAdvisoryTime(nextAdvTimeNil);
 		}
-                // adjustment for TranslationFailedTAC("");
-                resultSwxType.setTranslationFailedTAC("");
-		return resultSwxType;
+                return resultSwxType;
 	}
 
 	/** creates UnitPropertyType section for issuing center */
@@ -498,7 +496,9 @@ public class SPACEWEATHERConverterV3 implements TacConverter<SPACEWEATHERTacMess
 			throws DatatypeConfigurationException {
 		report = iwxxmHelpers.addTranslationCentreHeaders(report, DateTime.now(), DateTime.now(),
 				UUID.randomUUID().toString(), "UUWV", "Moscow, RU");
-		return report;
+		// adjustment for TranslationFailedTAC("");
+                report.setTranslationFailedTAC("");
+                return report;
 
 	}
 
