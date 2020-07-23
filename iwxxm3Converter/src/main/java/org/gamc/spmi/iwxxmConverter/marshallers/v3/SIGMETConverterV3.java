@@ -659,7 +659,7 @@ public class SIGMETConverterV3 implements TacConverter<SIGMETTacMessage, SIGMETT
 	public SIGMETType addTranslationCentreHeader(SIGMETType report) throws DatatypeConfigurationException {
 		report = iwxxmHelpers.addTranslationCentreHeaders(report, DateTime.now(), DateTime.now(),
 				UUID.randomUUID().toString(), "UUWV", "Moscow, RU");
-		// report.setTranslationFailedTAC("");
+		report.setTranslationFailedTAC("");
 		return report;
 	}
 
