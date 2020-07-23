@@ -45,6 +45,8 @@ import org.gamc.spmi.iwxxmConverter.tac.TacMessageImpl;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implemetation of a METAR Tac message
@@ -53,7 +55,8 @@ import org.joda.time.Interval;
  */
 public class METARTacMessage extends TacMessageImpl {
 
-	
+	private Logger MetarLogger = LoggerFactory.getLogger(METARTacMessage.class);
+        
 	MessageStatusType messageStatusType = MessageStatusType.NORMAL;
 	
 	private MetarCommonWeatherSection commonWeatherSection = new MetarCommonWeatherSection(true);
@@ -91,7 +94,7 @@ public class METARTacMessage extends TacMessageImpl {
 	 */
 	@Override
 	public void parseMessage() throws METARParsingException {
-
+                MetarLogger.debug("parseMessage 1");
 		StringBuffer tac = new StringBuffer(getInitialTacString());
 		// seek trend forecast and RMK sections to process them later.
 
@@ -132,7 +135,7 @@ public class METARTacMessage extends TacMessageImpl {
 		tac = fillAndRemoveTrendSections(tac);
 		tac = findAndRemoveRMKSection(tac);
 
-				
+                MetarLogger.debug("parseMessage 2");
 		// process RVR
 
 		matcher = MetarParsingRegexp.metarRVR.matcher(tac);
@@ -169,9 +172,9 @@ public class METARTacMessage extends TacMessageImpl {
 		}
 		
 		matcher = MetarParsingRegexp.metarRunwayState.matcher(tac);
-
+                MetarLogger.debug("parseMessage 3.1");
 		while (matcher.find()) {
-			
+			MetarLogger.debug("parseMessage 3 Matcher start");
 			int startIndex=matcher.start();
 			lastIndex = matcher.end();
 			
@@ -185,6 +188,7 @@ public class METARTacMessage extends TacMessageImpl {
 			String sFriction = matcher.group("friction");
 
 			METARRunwayStateSection rwsSection = new METARRunwayStateSection(tac.substring(startIndex , lastIndex));
+                        MetarLogger.debug("parseMessage 3 Matcher 1");
 			if (sRWDesignator.equalsIgnoreCase("88"))
 				rwsSection.setApplicableForAllRunways(true);
 			
@@ -192,31 +196,31 @@ public class METARTacMessage extends TacMessageImpl {
 			
 			rwsSection.setCleared(sRWCleared!=null);
 			
-			
+			MetarLogger.debug("parseMessage 3 Matcher 2");
 			if (sType!=null && ! sType.equalsIgnoreCase("/"))
 				rwsSection.setType( Optional.of(Integer.valueOf(sType)));
-			
+			MetarLogger.debug("parseMessage 3 Matcher 3");
 			if (sContamination!=null && ! sContamination.equalsIgnoreCase("/"))
 				rwsSection.setContamination(Optional.of(Integer.valueOf(sContamination)));
-			
+			MetarLogger.debug("parseMessage 3 Matcher 4");
 			if (sDepth!=null && ! sDepth.equalsIgnoreCase("//"))
 				rwsSection.setDepositDepth(Optional.of(Integer.valueOf(sDepth)));
-			
+			MetarLogger.debug("parseMessage 3 Matcher 5");
 			if (sFriction!=null && ! sFriction.equalsIgnoreCase("//"))
 				rwsSection.setFriction(Optional.of(Integer.valueOf(sFriction)));
-			
+			MetarLogger.debug("parseMessage 3 Matcher 6");
 			this.runwayStateSections.add(rwsSection);
-
+                        MetarLogger.debug("parseMessage 3 Matcher 7");
 			tac.delete(startIndex, lastIndex);
 			matcher.reset();
-			
+			MetarLogger.debug("parseMessage 3 Matcher end");
 		}
 		
 
 		//if (this.rvrSections.size() > 0)
-		
+		MetarLogger.debug("parseMessage 3.2");
 		tac = processCommonWeatherSection(tac);
-
+                MetarLogger.debug("parseMessage 4");
 		// Wind shear for all runways
 		matcher = MetarParsingRegexp.metarWindShearAll.matcher(tac);
 		if (matcher.find()) {
@@ -229,6 +233,7 @@ public class METARTacMessage extends TacMessageImpl {
 		
 		// Wind shear for some runways
 		matcher = MetarParsingRegexp.metarWindShearRunway.matcher(tac);
+                MetarLogger.debug("parseMessage 5");
 		while (matcher.find()) {
 			String rw = matcher.group("wsRunway");
 			this.windShearSections.add(rw);
@@ -242,6 +247,7 @@ public class METARTacMessage extends TacMessageImpl {
 
 		// NOSIG
 		matcher = MetarParsingRegexp.metarNOSIGForecast.matcher(tac);
+                MetarLogger.debug("parseMessage 6");
 		if (matcher.matches()) {
 			this.noSignificantChanges = true;
 			lastIndex = matcher.end();
@@ -253,7 +259,7 @@ public class METARTacMessage extends TacMessageImpl {
 				throw new METARParsingException("NOSIG messed with trend sections!");
 			}
 		}
-
+                MetarLogger.debug("parseMessage End");
 	}
 
 	/**

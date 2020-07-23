@@ -29,57 +29,63 @@ import org.gamc.spmi.iwxxmConverter.iwxxmenums.PRESSURE_UNITS;
 import org.gamc.spmi.iwxxmConverter.iwxxmenums.RUMB_UNITS;
 import org.gamc.spmi.iwxxmConverter.iwxxmenums.SPEED_UNITS;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Embedded objects of this class are used to describe common weather condition
  * in METAR itself, BECMG or TEMPO sections
  */
 public class MetarCommonWeatherSection implements CommonWeatherSection {
+    
+        private Logger MetarCommonWeatherSectionLogger = LoggerFactory.getLogger(MetarCommonWeatherSection.class);
+        
 	boolean failWhenMandatorySectionMissed = true;
-	@AnnotationLocalizedName(name = "Направление ветра")
+	@AnnotationLocalizedName(name = "Direction of the wind")
 	private Integer windDir;
-	@AnnotationLocalizedName(name = "Скорость ветра")
+	@AnnotationLocalizedName(name = "Wind speed")
 	private Integer windSpeed;
-	@AnnotationLocalizedName(name = "Порыв ветра")
+	@AnnotationLocalizedName(name = "gust of wind")
 	private Integer gustSpeed;
-	@AnnotationLocalizedName(name = "Единица измерения скорости ветра")
+	@AnnotationLocalizedName(name = "Wind speed unit")
 	private SPEED_UNITS speedUnits = SPEED_UNITS.MPS;
 
 	// if wind direction variables and speed>6m/s
-	@AnnotationLocalizedName(name = "Изменение направления ветра от")
+	@AnnotationLocalizedName(name = "Change in wind direction from")
 	private Integer windVariableFrom;
-	@AnnotationLocalizedName(name = "Изменение направления ветра до")
+	@AnnotationLocalizedName(name = "Change in wind direction to")
 	private Integer windVariableTo;
 
 	// VRB if wind direction variables and speed<6m/s
-	@AnnotationLocalizedName(name = "Наличие перменной")
+	@AnnotationLocalizedName(name = "The presence of a variable")
 	private boolean vrb;
-	@AnnotationLocalizedName(name = "Скорость ветра vrb")
+	@AnnotationLocalizedName(name = "Wind speed vrb")
 	private Integer windVrbSpeed;
-	@AnnotationLocalizedName(name = "Единица измерения скорости ветра vrb")
+	@AnnotationLocalizedName(name = "Wind speed unit vrb")
 	private SPEED_UNITS vrbSpeedUnits = SPEED_UNITS.MPS;
-	@AnnotationLocalizedName(name = "Наличие CAVOK")
+	@AnnotationLocalizedName(name = "Availability of CAVOK")
 	private boolean cavok = false;
-	@AnnotationLocalizedName(name = "Температура")
+	@AnnotationLocalizedName(name = "Temperature")
 	private BigDecimal airTemperature;
-	@AnnotationLocalizedName(name = "Точка росы")
+	@AnnotationLocalizedName(name = "Dew point")
 	private BigDecimal dewPoint;
-	@AnnotationLocalizedName(name = "Давление QNH")
+	@AnnotationLocalizedName(name = "Pressure QNH")
 	private BigDecimal qnh;
-	@AnnotationLocalizedName(name = "Единица измерения давления")
+	@AnnotationLocalizedName(name = "Pressure unit")
 	private PRESSURE_UNITS qnhUnits = PRESSURE_UNITS.HECTOPASCALS;
-	@AnnotationLocalizedName(name = "Преобладающая видимость")
+	@AnnotationLocalizedName(name = "Prevailing visibility")
 	private Integer prevailVisibility;
-	@AnnotationLocalizedName(name = "Минимальная видимость")
+	@AnnotationLocalizedName(name = "Minimum visibility")
 	private Integer minimumVisibility;
-	@AnnotationLocalizedName(name = "Направление минимальной видимости")
+	@AnnotationLocalizedName(name = "Direction of minimum visibility")
 	private RUMB_UNITS minimumVisibilityDirection;
-	@AnnotationLocalizedName(name = "Единица измерения видимости")
+	@AnnotationLocalizedName(name = "Visibility unit")
 	private LENGTH_UNITS visibilityUnits = LENGTH_UNITS.M;
-	@AnnotationLocalizedName(name = "Список текущих погодных явлений")
+	@AnnotationLocalizedName(name = "List of current weather events")
 	private LinkedList<String> currentWeather = new LinkedList<String>();
-	@AnnotationLocalizedName(name = "Список недавних погодных явлений")
+	@AnnotationLocalizedName(name = "List of recent weather events")
 	private LinkedList<String> recentWeather = new LinkedList<String>();
-	@AnnotationLocalizedName(name = "Список секций вертикальной видимости")
+	@AnnotationLocalizedName(name = "List of sections of vertical visibility")
 	private LinkedList<METARCloudSection> cloudSections = new LinkedList<METARCloudSection>();
 
 	/**
@@ -93,12 +99,15 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 	}
 
 	public StringBuffer parseSection(StringBuffer tac) throws METARParsingException {
-
+                
 		// parsing Winds
 		boolean hasWindSection = false;
 		int lastIndex = 0;
-
-		Matcher matcher = MetarParsingRegexp.metarWind.matcher(tac);
+               
+                MetarCommonWeatherSectionLogger.debug("parseSection start");
+        
+		MetarCommonWeatherSectionLogger.debug("parseSection 1");
+                Matcher matcher = MetarParsingRegexp.metarWind.matcher(tac);
 		if (matcher.find()) {
 			String sWd = matcher.group("windDir");
 			String sWs = matcher.group("windSpeed");
@@ -128,7 +137,8 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 		}
 
 		// wind variable
-		matcher = MetarParsingRegexp.metarWindVariable.matcher(tac);
+		MetarCommonWeatherSectionLogger.debug("parseSection 2");
+                matcher = MetarParsingRegexp.metarWindVariable.matcher(tac);
 		if (matcher.find()) {
 			String sVf = matcher.group("variableFrom");
 			String sVt = matcher.group("variableTo");
@@ -142,7 +152,8 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 		}
 
 		// has VRB?
-		matcher = MetarParsingRegexp.metarWindVRB.matcher(tac);
+		MetarCommonWeatherSectionLogger.debug("parseSection 3");
+                matcher = MetarParsingRegexp.metarWindVRB.matcher(tac);
 		if (matcher.find()) {
 			String sVrbS = matcher.group("vrbWindSpeed");
 			String sVrbU = matcher.group("vrbWindUnits");
@@ -156,12 +167,14 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 			hasWindSection = true;
 		}
 
-		if (!hasWindSection && failWhenMandatorySectionMissed)
+		MetarCommonWeatherSectionLogger.debug("parseSection 4");
+                if (!hasWindSection && failWhenMandatorySectionMissed)
 			throw new METARParsingException("METAR mandatory wind section is missed");
 
 		// CAVOK?
 
-		matcher = MetarParsingRegexp.metarCavok.matcher(tac);
+		MetarCommonWeatherSectionLogger.debug("parseSection 5");
+                matcher = MetarParsingRegexp.metarCavok.matcher(tac);
 		if (matcher.find()) {
 
 			this.setCavok(true);
@@ -170,7 +183,8 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 		}
 
 		// process visibility in two steps - find prevail and minimum visibility
-		matcher = MetarParsingRegexp.metarVisibility.matcher(tac);
+		MetarCommonWeatherSectionLogger.debug("parseSection 6");
+                matcher = MetarParsingRegexp.metarVisibility.matcher(tac);
 		if (matcher.find()) {
 
 			if (this.isCavok())
@@ -190,7 +204,8 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 		}
 		matcher.reset();
 
-		if (matcher.find() && matcher.start() <= 1) {
+		MetarCommonWeatherSectionLogger.debug("parseSection 7");
+                if (matcher.find() && matcher.start() <= 1) {
 
 			if (this.isCavok())
 				throw new METARParsingException("It is CAVOK");
@@ -208,7 +223,8 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 
 		// process precipitations
 
-		matcher = MetarParsingRegexp.metarPrecipitation.matcher(tac);
+		MetarCommonWeatherSectionLogger.debug("parseSection 8");
+                matcher = MetarParsingRegexp.metarPrecipitation.matcher(tac);
 		while (matcher.find()) {
 
 			String curWeather = matcher.group("weather");
@@ -218,11 +234,13 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 
 		}
 
-		if (this.getCurrentWeather().size() > 0)
+		MetarCommonWeatherSectionLogger.debug("parseSection 9");
+                if (this.getCurrentWeather().size() > 0)
 			tac.delete(0, lastIndex);
 
 		// processClouds
-		matcher = MetarParsingRegexp.metarClouds.matcher(tac);
+		MetarCommonWeatherSectionLogger.debug("parseSection 10");
+                matcher = MetarParsingRegexp.metarClouds.matcher(tac);
 		while (matcher.find()) {
 
 			if (this.isCavok())
@@ -254,11 +272,13 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 
 		}
 
-		if (this.getCloudSections().size() > 0)
+		MetarCommonWeatherSectionLogger.debug("parseSection 11");
+                if (this.getCloudSections().size() > 0)
 			tac.delete(0, lastIndex);
 
 		// Temperatures
-		matcher = MetarParsingRegexp.metarAirTemp.matcher(tac);
+		MetarCommonWeatherSectionLogger.debug("parseSection 12");
+                matcher = MetarParsingRegexp.metarAirTemp.matcher(tac);
 		if (matcher.find()) {
 
 			String sTa = matcher.group("tempAir").replace("M", "-");
@@ -275,7 +295,8 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 		}
 
 		// QNH
-		matcher = MetarParsingRegexp.metarQNH.matcher(tac);
+		MetarCommonWeatherSectionLogger.debug("parseSection 13");
+                matcher = MetarParsingRegexp.metarQNH.matcher(tac);
 		if (matcher.find()) {
 
 			String sQnh = matcher.group("qnh");
@@ -291,7 +312,8 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 		}
 
 		// process recent weather
-		matcher = MetarParsingRegexp.metarRecentWeather.matcher(tac);
+		MetarCommonWeatherSectionLogger.debug("parseSection 14");
+                matcher = MetarParsingRegexp.metarRecentWeather.matcher(tac);
 		int start = 0;
 		while (matcher.find()) {
 
@@ -306,10 +328,12 @@ public class MetarCommonWeatherSection implements CommonWeatherSection {
 
 		}
 
-		if (this.getRecentWeather().size() > 0)
+		MetarCommonWeatherSectionLogger.debug("parseSection 15");
+                if (this.getRecentWeather().size() > 0)
 			tac.delete(start, lastIndex);
 
-		return tac;
+		MetarCommonWeatherSectionLogger.debug("parseSection end");
+                return tac;
 
 	}
 
