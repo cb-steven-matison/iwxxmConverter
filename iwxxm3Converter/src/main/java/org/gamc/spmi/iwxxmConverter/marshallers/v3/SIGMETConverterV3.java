@@ -99,8 +99,14 @@ import schemabindings31.net.opengis.gml.v_3_2_1.SurfacePatchArrayPropertyType;
 import schemabindings31.net.opengis.gml.v_3_2_1.TimeInstantPropertyType;
 import schemabindings31.net.opengis.gml.v_3_2_1.TimePrimitivePropertyType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SIGMETConverterV3 implements TacConverter<SIGMETTacMessage, SIGMETType, IWXXM31Helpers> {
-	private TreeMap<String, String> createdRunways = new TreeMap<>();
+	
+        private Logger SigmetLogger = LoggerFactory.getLogger(SIGMETConverterV3.class);
+    
+        private TreeMap<String, String> createdRunways = new TreeMap<>();
 	String airTrafficUnit = "FIC";
 	String watchOfficeType = "MWO";
 	String firType = "OTHER:FIR_UIR";
@@ -116,30 +122,40 @@ public class SIGMETConverterV3 implements TacConverter<SIGMETTacMessage, SIGMETT
 	@Override
 	public String convertTacToXML(String tac)
 			throws UnsupportedEncodingException, DatatypeConfigurationException, JAXBException {
+                SigmetLogger.debug("convertTacToXML start");
 		createdRunways.clear();
 
-		SIGMETTacMessage sigmetMessage = new SIGMETTacMessage(tac);
+		SigmetLogger.debug("convertTacToXML 1");
+                SIGMETTacMessage sigmetMessage = new SIGMETTacMessage(tac);
 
-		SIGMETType result;
+		SigmetLogger.debug("convertTacToXML 2");
+                SIGMETType result;
 
 		try {
-			sigmetMessage.parseMessage();
+			SigmetLogger.debug("convertTacToXML 3");
+                        sigmetMessage.parseMessage();
+                        SigmetLogger.debug("convertTacToXML 4");
 			result = convertMessage(sigmetMessage);
+                        SigmetLogger.debug("convertTacToXML 5");
 		} catch (ParsingException pa) {
+                        SigmetLogger.debug("convertTacToXML 6");
 			result = iwxxmHelpers.getOfIWXXM().createSIGMETType();
 			result.setTranslationFailedTAC(tac);
-
+                        SigmetLogger.debug("convertTacToXML 7");
 		}
 
-		String xmlResult = marshallMessageToXML(result);
+		SigmetLogger.debug("convertTacToXML 8");
+                String xmlResult = marshallMessageToXML(result);
 
-		return xmlResult;
+		SigmetLogger.debug("convertTacToXML end");
+                return xmlResult;
 	}
 
 	@Override
 	public SIGMETType convertMessage(SIGMETTacMessage translatedMessage)
 			throws DatatypeConfigurationException, UnsupportedEncodingException, JAXBException, ParsingException {
-		this.translatedSigmet = translatedMessage;
+		SigmetLogger.debug("convertMessage start");
+                this.translatedSigmet = translatedMessage;
 		SIGMETType sigmetRootTag = iwxxmHelpers.getOfIWXXM().createSIGMETType();
 
 		StringOrRefType refTacString = iwxxmHelpers.getOfGML().createStringOrRefType();
@@ -207,6 +223,7 @@ public class SIGMETConverterV3 implements TacConverter<SIGMETTacMessage, SIGMETT
 			break;
 		}
 		// create XML representation
+                SigmetLogger.debug("convertMessage end");
 		return sigmetRootTag;
 	}
 

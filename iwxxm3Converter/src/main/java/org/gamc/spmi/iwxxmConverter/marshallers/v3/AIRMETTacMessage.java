@@ -29,9 +29,14 @@ import org.gamc.spmi.iwxxmConverter.tac.TacMessageImpl;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AIRMETTacMessage  extends TacMessageImpl{
 
-	public enum Type {
+	private Logger AirmetLogger = LoggerFactory.getLogger(AIRMETTacMessage.class);
+    
+        public enum Type {
 		METEO, VOLCANO, CYCLONE;
 	}
 
@@ -193,38 +198,43 @@ public class AIRMETTacMessage  extends TacMessageImpl{
 
 	@Override
 	public void parseMessage() throws AIRMETParsingException {
-		StringBuffer tac = new StringBuffer(getInitialTacString());
+		AirmetLogger.debug("parseMessage start");
+                StringBuffer tac = new StringBuffer(getInitialTacString());
 
 		int lastIndex = 0;
 		// parse bulletin header
-		Matcher matcherBulletin = AirmetParsingRegexp.airmetBulletinHeader.matcher(tac);
+		AirmetLogger.debug("parseMessage 1");
+                Matcher matcherBulletin = AirmetParsingRegexp.airmetBulletinHeader.matcher(tac);
 		if (matcherBulletin.find()) {
 			this.setAirmetDataType(matcherBulletin.group("airmetDataType"));
 			this.setIssueRegion(matcherBulletin.group("issueRegion"));
 			this.setBulletinNumber(Integer.parseInt(matcherBulletin.group("bulletinNumber")));
 			this.setDisseminatingCentre(matcherBulletin.group("disseminatingCentre"));
-
+                        AirmetLogger.debug("parseMessage 1.1");
 			try {
 				this.setMessageIssueDateTime(
 						IWXXM31Helpers.parseDateTimeToken(matcherBulletin.group("issuedDateTime")));
 			} catch (ParsingException e) {
 				throw new AIRMETParsingException("Check date and time");
 			}
-
+                        AirmetLogger.debug("parseMessage 1.2");
 			lastIndex = matcherBulletin.end();
 			tac.delete(0, lastIndex);
+                        AirmetLogger.debug("parseMessage 1.3");
 		} else
 			throw new AIRMETParsingException("Mandatory Bulletin header section is missed");
-
+                        AirmetLogger.debug("parseMessage 1.4");
 		// parsing airmet header
-		Matcher matcher = getHeaderPattern().matcher(tac);
+		AirmetLogger.debug("parseMessage 2");
+                Matcher matcher = getHeaderPattern().matcher(tac);
 		if (matcher.find()) {
-
+                        AirmetLogger.debug("parseMessage 2.1");
 			String airmetHeader = matcher.group("isAirmet");
 			if (!airmetHeader.equalsIgnoreCase(getTacStartToken()))
 				throw new AIRMETParsingException("Not a valid " + getTacStartToken());
 
-			this.setIcaoCode(matcher.group("icao"));
+			AirmetLogger.debug("parseMessage 2.2");
+                        this.setIcaoCode(matcher.group("icao"));
 			this.setAirmetNumber(matcher.group("airmetNumber"));
 			this.setWatchOffice(matcher.group("watchOffice"));
 			this.setFirCode(matcher.group("firCode"));
@@ -232,37 +242,47 @@ public class AIRMETTacMessage  extends TacMessageImpl{
 			try {
 				this.setValidFrom(IWXXM31Helpers.parseDateTimeToken(matcher.group("dateFrom")));
 				this.setValidTo(IWXXM31Helpers.parseDateTimeToken(matcher.group("dateTo")));
+                                AirmetLogger.debug("parseMessage 2.3");
 			} catch (ParsingException e) {
 				throw new AIRMETParsingException("Check date and time in VALID sections");
 			}
-			
+			AirmetLogger.debug("parseMessage 2.4");
 			//Check if airmet is CNL
 			boolean isCancel = matcher.group("isCancel")!=null;
 			if (isCancel) {
+                                AirmetLogger.debug("parseMessage 2.5");
 				this.setMessageStatusType(MessageStatusType.CANCEL);
 				this.setCancelAirmetNumber(matcher.group("cancelNumber"));
 				try {
 					this.setCancelAirmetDateTimeFrom(IWXXM31Helpers.parseDateTimeToken(matcher.group("cancelDateFrom")));
 					this.setCancelAirmetDateTimeTo(IWXXM31Helpers.parseDateTimeToken(matcher.group("cancelDateTo")));
+                                        AirmetLogger.debug("parseMessage 2.6");
 				} catch (ParsingException e) {
 					throw new AIRMETParsingException("Check date and time for CANCEL section");
 				}
+                                AirmetLogger.debug("parseMessage 2.7");
 				return;
 			}
 			
 			lastIndex = matcher.end();
 			tac.delete(0, lastIndex);
-
+                        AirmetLogger.debug("parseMessage 2.8");
 		} else
 			throw new AIRMETParsingException("Mandatory header section is missed in " + getTacStartToken());
 
-		fillAndRemovePhenomenaDescription(tac);
-		fillAndRemoveForecastedLocation(tac);
-		fillLocationSection(tac);
-		fillIntensity(tac);
-		fillMovingSection(tac);
-		fillLevel(tac);
-
+		AirmetLogger.debug("parseMessage 3");
+                fillAndRemovePhenomenaDescription(tac);
+		AirmetLogger.debug("parseMessage 4");
+                fillAndRemoveForecastedLocation(tac);
+		AirmetLogger.debug("parseMessage 5");
+                fillLocationSection(tac);
+		AirmetLogger.debug("parseMessage 6");
+                fillIntensity(tac);
+		AirmetLogger.debug("parseMessage 7");
+                fillMovingSection(tac);
+		AirmetLogger.debug("parseMessage 8");
+                fillLevel(tac);
+                AirmetLogger.debug("parseMessage end");
 	}
 
 	protected StringBuffer fillAndRemovePhenomenaDescription(StringBuffer tac) throws AIRMETParsingException {

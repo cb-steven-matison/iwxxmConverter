@@ -40,6 +40,8 @@ import org.gamc.spmi.iwxxmConverter.tafconverter.TafParsingRegexp;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * Implemetation of a TAF Tac message
  * 
@@ -47,7 +49,9 @@ import org.joda.time.Interval;
  */
 public class TAFTacMessage extends TacMessageImpl {
 	
-	private MessageStatusType messageStatusType = MessageStatusType.NORMAL;
+	private Logger TafLogger = LoggerFactory.getLogger(TAFTacMessage.class);
+    
+        private MessageStatusType messageStatusType = MessageStatusType.NORMAL;
 	
 	private TafCommonWeatherSection commonWeatherSection = new TafCommonWeatherSection(true);
 
@@ -83,12 +87,14 @@ public class TAFTacMessage extends TacMessageImpl {
 	 */
 	@Override
 	public void parseMessage() throws TAFParsingException {
-
+                TafLogger.debug("parseMessage start");
 		StringBuffer tac = new StringBuffer(getInitialTacString());
 		
 		int lastIndex = 0;
 		// start parse header
+                TafLogger.debug("parseMessage 1");
 		Matcher matcher = getHeaderPattern().matcher(tac);
+                TafLogger.debug("parseMessage 2");
 		if (matcher.lookingAt()) {
 
 			String header = matcher.group("header");
@@ -119,23 +125,30 @@ public class TAFTacMessage extends TacMessageImpl {
 		} else
 			throw new TAFParsingException("TAF mandatory header section is missed");
 
-		tac = fillAndRemoveProbabilitySections(tac);
-		tac = fillAndRemoveTrendTimeSections(tac);
-		tac = fillAndRemoveTrendSections(tac);
-		tac = findAndRemoveRMKSection(tac);
+		TafLogger.debug("parseMessage 3");
+                tac = fillAndRemoveProbabilitySections(tac);
+		TafLogger.debug("parseMessage 4");
+                tac = fillAndRemoveTrendTimeSections(tac);
+		TafLogger.debug("parseMessage 5");
+                tac = fillAndRemoveTrendSections(tac);
+		TafLogger.debug("parseMessage 6");
+                tac = findAndRemoveRMKSection(tac);
 
-		tac = processCommonWeatherSection(tac);
+		TafLogger.debug("parseMessage 7");
+                tac = processCommonWeatherSection(tac);
 
 		// if (this.rvrSections.size() > 0)
 
 		// NOSIG
-		matcher = TafParsingRegexp.tafNOSIGForecast.matcher(tac);
+		TafLogger.debug("parseMessage 8");
+                matcher = TafParsingRegexp.tafNOSIGForecast.matcher(tac);
+                TafLogger.debug("parseMessage 9");
 		if (matcher.matches()) {
 			this.noSignificantChanges = true;
 			lastIndex = matcher.end();
 			tac.delete(0, lastIndex);
 		}
-
+                TafLogger.debug("parseMessage end");
 	}
 	/**Applying regexp to parse and remove probaility sections (e.g. PROB30 TEMPO)*/
 	private StringBuffer fillAndRemoveProbabilitySections(StringBuffer tac) {
