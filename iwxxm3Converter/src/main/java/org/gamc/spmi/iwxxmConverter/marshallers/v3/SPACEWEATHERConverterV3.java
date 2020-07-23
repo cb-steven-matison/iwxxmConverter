@@ -159,6 +159,8 @@ public class SPACEWEATHERConverterV3 implements TacConverter<SPACEWEATHERTacMess
 			
 			resultSwxType.setNextAdvisoryTime(nextAdvTimeNil);
 		}
+                // adjustment for TranslationFailedTAC("");
+                resultSwxType.setTranslationFailedTAC("");
 		return resultSwxType;
 	}
 
